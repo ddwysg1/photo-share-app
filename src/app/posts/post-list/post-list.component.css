@@ -3,6 +3,10 @@
   margin-top: 16px;
 }
 
+mat-spinner {
+  margin: auto;
+}
+
 p.mat-body-1.ng-star-inserted {
   text-align: center;
 }
