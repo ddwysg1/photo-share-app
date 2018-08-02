@@ -1,7 +1,8 @@
 const express = require('express');
-const Post = require('../models/post.js');
-const multer = require("multer");
+const Post = require('../models/post');
+const multer = require('multer');
 
+const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
 const MIME_TYPE_MAP = {
@@ -29,12 +30,12 @@ const storage = multer.diskStorage({
   }
 });
 
-router.post('', multer({ storage: storage }).single("image"), (req, res, next) => {
+router.post('', checkAuth, multer({ storage: storage }).single("image"), (req, res, next) => {
   const url = req.protocol + "://" + req.get('host');
   const post = new Post({
     title: req.body.title,
     text: req.body.text,
-    imagePath: url + "images/" + req.file.filename
+    imagePath: url + "/images/" + req.file.filename
   });
   post.save().then(createdPost => {
     res.status(201).json({
@@ -47,37 +48,8 @@ router.post('', multer({ storage: storage }).single("image"), (req, res, next) =
   });
 });
 
-router.get('', (req, res, next) => {
-  const pageSize = +req.query.pagesize;
-  const currentPage = +req.query.page;
-  const postQuery =  Post.find();
-  if (pageSize && currentPage) {
-    postQuery.skip(pageSize * (currentPage - 1)).limit(pageSize);
-  }
-  let fetchedPosts;
-  postQuery.then(docs => {
-    fetchedPosts = docs;
-    return Post.count();
-  }).then(count => {
-    res.status(200).json({
-      message: "Posts fetched successfully!",
-      posts: fetchedPosts,
-      maxPosts: count
-    });
-  });
-});
 
-router.get('/:id', (req, res, next) => {
-  Post.findById(req.params.id).then(post => {
-    if (post) {
-      res.status(200).json(post);
-    } else {
-      res.status(404).json({message: 'Post not found!'});
-    }
-  });
-});
-
-router.put('/:id', multer({ storage: storage }).single("image"), (req, res, next) => {
+router.put('/:id', checkAuth, multer({ storage: storage }).single("image"), (req, res, next) => {
   const imagePath = req.body.imagePath;
   if (req.file) {
     const url = req.protocol + "://" + req.get("host");
@@ -97,7 +69,37 @@ router.put('/:id', multer({ storage: storage }).single("image"), (req, res, next
   });
 });
 
-router.delete('/:id', (req, res, next) => {
+router.get('', (req, res, next) => {
+  const pageSize = +req.query.pagesize;
+  const currentPage = +req.query.page;
+  const postQuery =  Post.find();
+  if (pageSize && currentPage) {
+    postQuery.skip(pageSize * (currentPage - 1)).limit(pageSize);
+  }
+  let fetchedPosts;
+  postQuery.then(docs => {
+    fetchedPosts = docs;
+    return Post.estimatedDocumentCount();
+  }).then(count => {
+    res.status(200).json({
+      message: "Posts fetched successfully!",
+      posts: fetchedPosts,
+      maxPosts: count
+    });
+  });
+});
+
+router.get('/:id', (req, res, next) => {
+  Post.findById(req.params.id).then(post => {
+    if (post) {
+      res.status(200).json(post);
+    } else {
+      res.status(404).json({message: 'Post not found!'});
+    }
+  });
+});
+
+router.delete('/:id', checkAuth, (req, res, next) => {
   Post.deleteOne({_id: req.params.id}).then(result => {
     console.log(result);
     res.status(200).json({

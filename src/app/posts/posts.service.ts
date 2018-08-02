@@ -1,4 +1,4 @@
-import { Injectable } from '../../../node_modules/@angular/core';
+import { Injectable } from '@angular/core';
 
 import { Subject } from 'rxjs';
 import { Post } from './post.model';
@@ -45,7 +45,7 @@ export class PostsService {
     postData.append('title', title);
     postData.append('text', text);
     postData.append('image', image, title);
-    this.http.post<{message: string, post: Post}>('http://localhost:3000/api/posts', postData)
+    this.http.post<{message: string, post: Post}>('http://localhost:3000/api/posts/', postData)
     .subscribe((responseData) => {
       this.router.navigate(['/']);
     });
