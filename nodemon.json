@@ -1,0 +1,6 @@
+{
+  "env": {
+    "MONGO_ATLAS": "mongodb+srv://yue:8IurKYIbzzT6gKdY@cluster0-jftl4.mongodb.net/node-angular",
+    "JWT_KEY": "shareyourphoto"
+  }
+}
